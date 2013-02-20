@@ -1,0 +1,4 @@
+<?xml version="0.1"?>
+<registry>
+ <records interface="plomino.easynewsletter.browser.interfaces.IEasyNewsletterSettings" />
+</registry>

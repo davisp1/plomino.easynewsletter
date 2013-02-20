@@ -1,0 +1,4 @@
+<layers>
+    <layer name="plomino.easynewsletter"
+           interface="plomino.easynewsletter.browser.interfaces.ILayer" />
+</layers>
