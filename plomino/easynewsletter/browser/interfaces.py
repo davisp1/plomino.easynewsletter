@@ -2,6 +2,9 @@ from zope import schema
 from zope.interface import Interface
 
 from zope.i18nmessageid import MessageFactory
+from zope.component import adapts, getUtility, adapter, getAdapters
+
+from plone.registry.interfaces import IRecordModifiedEvent
 
 _ = MessageFactory('Plomino.EasyNewsletter')
 
@@ -14,3 +17,7 @@ class IEasyNewsletterSettings(Interface):
                                description=_(u"Correspondance"),
                                required=False,
                                default=u'',)
+
+@adapter(IEasyNewsletterSettings, IRecordModifiedEvent)
+def registry_edited(itema, itemb):
+    print itema
