@@ -9,7 +9,7 @@
         title="EasyNewsLetter Correspondance"
         action_id="easynewsletter"
         appId="plomino.easynewsletter"
-        category="plomino"
+        category="Products"
         condition_expr=""
         url_expr="string:${portal_url}/@@plomino-easynewsletter-settings"
         visible="True"

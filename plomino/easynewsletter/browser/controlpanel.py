@@ -1,6 +1,6 @@
 from plone.app.registry.browser import controlpanel
 
-from plomino.easynewsletter.interfaces import IEasyNewsletterSettings, _
+from plomino.easynewsletter.browser.interfaces import IEasyNewsletterSettings, _
 
 class EasyNewsletterSettingsEditForm(controlpanel.RegistryEditForm):
 

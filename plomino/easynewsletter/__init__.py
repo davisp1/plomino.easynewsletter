@@ -5,7 +5,7 @@ from plone.registry.interfaces import IRegistry
 
 from Products.EasyNewsletter.interfaces import ISubscriberSource
 
-from .interfaces import IEasyNewsletterSettings
+from .browser.interfaces import IEasyNewsletterSettings
 from .newsletter import SuscriberSource
 
 external_list=[["/Plone/test-base/testagent","test1"],
