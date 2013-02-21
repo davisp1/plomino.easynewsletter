@@ -13,5 +13,5 @@ external_list=[["/Plone/test-base/testagent","test1"],
 
 gsm = getGlobalSiteManager()
 for source in external_list:
-    test = SuscriberSource(source[0])
+    test = SuscriberSource(source[0],source[1])
     gsm.registerUtility(test, ISubscriberSource, source[1])

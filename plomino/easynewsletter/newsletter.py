@@ -8,8 +8,9 @@ logger = logging.getLogger('newsletter')
 class SuscriberSource(object):
     implements(ISubscriberSource)
     
-    def __init__(self,source):
+    def __init__(self,source,name):
         self.source=source
+        self.name=name
         
     def getSubscribers(self, newsletter):
         """ return all subscribers for the given newsletter
