@@ -1,4 +1,4 @@
-from transaction import commit
+"""from transaction import commit
 
 from zope.component import getUtility,getGlobalSiteManager
 from plone.registry.interfaces import IRegistry
@@ -14,4 +14,4 @@ external_list=[["/Plone/test-base/testagent","test1"],
 gsm = getGlobalSiteManager()
 for source in external_list:
     test = SuscriberSource(source[0],source[1])
-    gsm.registerUtility(test, ISubscriberSource, source[1])
+    gsm.registerUtility(test, ISubscriberSource, source[1])"""
