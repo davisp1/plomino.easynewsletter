@@ -28,29 +28,37 @@ def registry_edited(itema, itemb):
 
     sm=getSiteManager()
     
-    #print_layers(sm)
+    print_layers(sm)
     txts={}
+    modified=[]
     
     utilities=sm.getUtilitiesFor(ISubscriberSource)
     utilities2=getAllUtilitiesRegisteredFor(ISubscriberSource)
     
+    #
     for cp_item in txt.replace("\r","").split("\n"):
         lst=cp_item.split(":")
         if(len(lst)==2):
             txts[lst[0]]=lst[1]
-            if len([a for a in utilities if a[0] == lst[0]])==0:
+            t=[a for a in utilities2 if a.name == lst[0]]
+            if len(t)==0:
+                #if element is not here we suscribe it
                 suscribe_utility(sm, lst[1], lst[0])
-
+            elif (lst[1]!=t[0].source):
+                #if source is different than before, we notify it as modified
+                modified.append(t[0].name.__str__())
+                
     for ut in utilities:
-        key=ut[0].__str__()
-        if(key.__str__() not in txt):
+        if((ut[0] not in txts.keys()) or (ut[0].__str__() in modified)):
+            print "remove utilities %s " % ut[0]
             ut2=sm._utility_registrations.get((ISubscriberSource, ut[0]))
             if ut2 is not None:
                 sm.unregisterUtility(ut2, ISubscriberSource, name=ut[0])
             sm.utilities.unsubscribe((), ISubscriberSource, ut[1])
     
     for ut in utilities2:
-        if(ut.name not in txt):
+        if((unicode(ut.name) not in txts.keys()) or (ut.name in modified)):
+            print "remove utilities2 %s" % ut.name
             ut2=sm._utility_registrations.get((ISubscriberSource, ut.name))
             if ut2 is not None:
                 sm.unregisterUtility(ut2, ISubscriberSource, name=ut.name)
@@ -59,7 +67,8 @@ def registry_edited(itema, itemb):
     for i in sm.utilities._adapters[:]:
         s = i.get(ISubscriberSource, {})
         for t in s.keys():
-            if(t.__str__() not in txt):
+            if((unicode(t) not in txts.keys()) or (t in modified)):
+                print "remove adapter %s" % unicode(t)
                 sm.unregisterUtility(s[t],ISubscriberSource,name=t.__str__())
                 try:
                     sm.utilities.unsubscribe((), ISubscriberSource, s[t])
@@ -68,39 +77,44 @@ def registry_edited(itema, itemb):
                     pass
   
     for x in sm._utility_registrations.keys():
-        if((x[0].__name__=="ISubscriberSource") and ( sm._utility_registrations[x][0].name not in txts.keys())):
+        if((x[0].__name__=="ISubscriberSource") and ((unicode(sm._utility_registrations[x][0].name) not in txts.keys()) or (sm._utility_registrations[x][0].name in modified))):
+            print "remove _utility_registration %s" % unicode(sm._utility_registrations[x][0].name)
             del sm._utility_registrations[x]
 
+    for m in modified:
+        name=unicode(m)
+        source=txts[name]
+        suscribe_utility(sm, source, name)
+        
     transaction.commit()
     sm._p_jar.sync()
-    #print_layers(sm)
+    print_layers(sm)
 
 def print_layers(sm):
     print "###"
+    print "# _utility_registrations"
     for x in sm._utility_registrations.keys():
         if((x[0].__name__=="ISubscriberSource")):
-            print " > "+sm._utility_registrations[x][0].name+" "+sm._utility_registrations[x][0].__str__()
-    print""
+            print (" > %s (%s) %s" % (sm._utility_registrations[x][0].name,sm._utility_registrations[x][0].source,sm._utility_registrations[x][0]))
+    print "# getAllUtilitiesRegisteredFor"
     nlayers = getAllUtilitiesRegisteredFor(ISubscriberSource)
     for a in nlayers:
-        print " => "+a.name+" "+a.__str__()
-    print""
+        print (" => %s (%s) %s" % (a.name,a.source,a))
+    print"# getUtilitesFor"
     nlayers = sm.getUtilitiesFor(ISubscriberSource)
     for a in nlayers:
-        print " ==> "+a.__str__()
-    print""
+        print (" ==> %s (%s) %s" % (a[1].name,a[1].source,a[1]))
+    print "# utilities._subscribers"
     for i in sm.utilities._subscribers[:]:
         s = i.get(ISubscriberSource, {})
         try:
             for t in s[""]:
-                print " ===> "+t.name+" "+t.__str__()
+                print (" ===> %s (%s) %s" % (t.name,t.source,t))
         except:
             pass
     print "###"
     
 def suscribe_utility(sm, source, name):
     s = SuscriberSource(source,name)
-    print name
+    print("Creation %s" % name)
     sm.registerUtility(s, ISubscriberSource, name)
-
-
