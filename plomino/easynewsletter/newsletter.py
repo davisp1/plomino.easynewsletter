@@ -18,7 +18,7 @@ class SuscriberSource(object):
         """
         uid = newsletter.UID()
         try:
-            agent=newsletter.restrictedTraverse(self.source)
+            agent=newsletter.restrictedTraverse(self.source.split("/"))
             a=agent()
         except:
             a=[]
