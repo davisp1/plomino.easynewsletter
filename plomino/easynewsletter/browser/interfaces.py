@@ -24,71 +24,57 @@ class IEasyNewsletterSettings(Interface):
 
 @adapter(IEasyNewsletterSettings, IRecordModifiedEvent)
 def registry_edited(itema, itemb):
-    txt=itema.easynewsletter_values
+    raw_text=itema.easynewsletter_values
 
     sm=getSiteManager()
     
-    print_layers(sm)
-    txts={}
-    modified=[]
+    #print_layers(sm)
+    texts = {}
+    modified = []
     
-    utilities=sm.getUtilitiesFor(ISubscriberSource)
-    utilities2=getAllUtilitiesRegisteredFor(ISubscriberSource)
+    utilities = getAllUtilitiesRegisteredFor(ISubscriberSource)
+    utilities += [ a[1] for a in sm.getUtilitiesFor(ISubscriberSource) if a[1] not in utilities]
     
-    #
-    for cp_item in txt.replace("\r","").split("\n"):
-        lst=cp_item.split(":")
-        if(len(lst)==2):
-            txts[lst[0]]=lst[1]
-            t=[a for a in utilities2 if a.name == lst[0]]
-            if len(t)==0:
-                #if element is not here we suscribe it
-                suscribe_utility(sm, lst[1], lst[0])
-            elif (lst[1]!=t[0].source):
-                #if source is different than before, we notify it as modified
-                modified.append(t[0].name.__str__())
-                
+    if raw_text is not None:
+        for item in raw_text.replace("\r","").split("\n"):
+            registry=item.split(":")
+            if(len(registry)==2):
+                texts[registry[0]]=registry[1]
+                found=[a for a in utilities if a.name == registry[0]]
+                if len(found)==0:
+                    #if element is not here we suscribe it
+                    suscribe_utility(sm, registry[1], registry[0])
+                elif (registry[1]!=found[0].source):
+                    #if source is different than before, we notify it as modified
+                    modified.append(found[0].name.__str__())
+        
     for ut in utilities:
-        if((ut[0] not in txts.keys()) or (ut[0].__str__() in modified)):
-            print "remove utilities %s " % ut[0]
-            ut2=sm._utility_registrations.get((ISubscriberSource, ut[0]))
-            if ut2 is not None:
-                sm.unregisterUtility(ut2, ISubscriberSource, name=ut[0])
-            sm.utilities.unsubscribe((), ISubscriberSource, ut[1])
-    
-    for ut in utilities2:
-        if((unicode(ut.name) not in txts.keys()) or (ut.name in modified)):
-            print "remove utilities2 %s" % ut.name
-            ut2=sm._utility_registrations.get((ISubscriberSource, ut.name))
-            if ut2 is not None:
-                sm.unregisterUtility(ut2, ISubscriberSource, name=ut.name)
-            sm.utilities.unsubscribe((), ISubscriberSource, ut2)
+        if((unicode(ut.name) not in texts.keys()) or (ut.name in modified)):
+            ut_registered=sm._utility_registrations.get((ISubscriberSource, ut.name))
+            if ut_registered is not None:
+                sm.unregisterUtility(ut_registered, ISubscriberSource, name=ut.name)
+            sm.utilities.unsubscribe((), ISubscriberSource, ut)
 
-    for i in sm.utilities._adapters[:]:
-        s = i.get(ISubscriberSource, {})
-        for t in s.keys():
-            if((unicode(t) not in txts.keys()) or (t in modified)):
-                print "remove adapter %s" % unicode(t)
-                sm.unregisterUtility(s[t],ISubscriberSource,name=t.__str__())
-                try:
-                    sm.utilities.unsubscribe((), ISubscriberSource, s[t])
-                    del s[t]
-                except:
-                    pass
-  
-    for x in sm._utility_registrations.keys():
-        if((x[0].__name__=="ISubscriberSource") and ((unicode(sm._utility_registrations[x][0].name) not in txts.keys()) or (sm._utility_registrations[x][0].name in modified))):
-            print "remove _utility_registration %s" % unicode(sm._utility_registrations[x][0].name)
-            del sm._utility_registrations[x]
+    for adapter in sm.utilities._adapters[:]:
+        items = adapter.get(ISubscriberSource, {})
+        for key in items.keys():
+            if((unicode(key) not in texts.keys()) or (key in modified)):
+                del items[key]
 
-    for m in modified:
-        name=unicode(m)
-        source=txts[name]
+    for interface_utility in sm._utility_registrations.keys():
+        if((interface_utility[0].__name__=="ISubscriberSource")):
+            name=sm._utility_registrations[interface_utility][0].name
+            if (((unicode(name) not in texts.keys()) or (name in modified))):
+                del sm._utility_registrations[interface_utility]
+
+    for item_modified in modified:
+        name=unicode(item_modified)
+        source=texts[name]
         suscribe_utility(sm, source, name)
         
     transaction.commit()
     sm._p_jar.sync()
-    print_layers(sm)
+    #print_layers(sm)
 
 def print_layers(sm):
     print "###"
